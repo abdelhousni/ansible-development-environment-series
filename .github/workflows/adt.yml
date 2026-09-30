@@ -1,0 +1,50 @@
+name: adt
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  adt:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: 05-ansible-development-tools-adt
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: Install uv
+        run: |
+          python -m venv /tmp/tools
+          /tmp/tools/bin/pip install uv==0.12.20
+      - name: Each Python version still resolves as in the entry
+        run: UV=/tmp/tools/bin/uv ./resolve-by-python.sh | diff expected-by-python.txt -
+      - name: The lock matches requirements.in
+        run: |
+          /tmp/tools/bin/uv pip compile requirements.in --python-version 3.13 --python-platform linux \
+            --generate-hashes -o requirements.txt --quiet
+          git diff --exit-code -- requirements.txt
+      - name: Install the lock
+        run: |
+          /tmp/tools/bin/uv venv --python 3.13 .venv
+          /tmp/tools/bin/uv pip sync --python .venv/bin/python requirements.txt
+          .venv/bin/adt --version | tee /tmp/adt.txt
+          grep -E '^ansible-core +2\.21\.4$' /tmp/adt.txt
+          grep -E '^ansible-lint +26\.9\.0$' /tmp/adt.txt
+      - name: ansible-navigator --ee false needs the venv on PATH
+        run: |
+          nav=(.venv/bin/ansible-navigator run site.yml --ee false --mode stdout --pae false)
+          if env -i HOME="$HOME" PATH=/nonexistent "${nav[@]}" > /tmp/without.txt 2>&1; then
+            echo "expected a failure without the venv on PATH"; exit 1
+          fi
+          grep -F 'ansible: not found' /tmp/without.txt
+          env -i HOME="$HOME" PATH="$PWD/.venv/bin" "${nav[@]}" 2>&1 | tee /tmp/with.txt
+          grep -F '"msg": "ansible-core 2.21.4"' /tmp/with.txt

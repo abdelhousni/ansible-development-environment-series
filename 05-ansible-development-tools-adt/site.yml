@@ -1,0 +1,8 @@
+---
+- name: Check the ADT venv
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Show which ansible-core runs the playbook
+      ansible.builtin.debug:
+        msg: "ansible-core {{ ansible_version.full }}"
