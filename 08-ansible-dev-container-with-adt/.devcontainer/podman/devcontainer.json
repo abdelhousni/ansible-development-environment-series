@@ -1,6 +1,6 @@
 {
   "name": "ansible-dev-container-podman",
-  "image": "ghcr.io/ansible/community-ansible-dev-tools:latest",
+  "image": "ghcr.io/ansible/community-ansible-dev-tools@sha256:775c81d53058009dd47b97872f4a86d3b0a9ce16ad9af3cc48514ce4197aa787",
   "containerUser": "root",
   "runArgs": [
     "--cap-add=CAP_MKNOD",

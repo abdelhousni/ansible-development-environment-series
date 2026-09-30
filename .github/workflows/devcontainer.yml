@@ -1,0 +1,42 @@
+name: devcontainer
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  EXAMPLE: 08-ansible-dev-container-with-adt
+  EE: ghcr.io/ansible-community/community-ee-base@sha256:9f2836592ab92794e8b1982311d504ba3c28a2c09b3f8de221ca3564842c0902
+
+jobs:
+  docker-config:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install the Dev Container CLI from its lock file
+        run: |
+          npm ci --prefix "$EXAMPLE/tools" --ignore-scripts --no-audit --no-fund
+          echo "$GITHUB_WORKSPACE/$EXAMPLE/tools/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Start the Docker configuration
+        run: devcontainer up --workspace-folder "$EXAMPLE" --config "$EXAMPLE/.devcontainer/docker/devcontainer.json"
+      - name: ADT is inside, at ansible-core 2.21.4
+        run: |
+          devcontainer exec --workspace-folder "$EXAMPLE" --config "$EXAMPLE/.devcontainer/docker/devcontainer.json" \
+            adt --version | tee /tmp/adt.txt
+          grep -E '^ansible-core +2\.21\.4$' /tmp/adt.txt
+      - name: Navigator's effective EE is the pinned one
+        run: |
+          devcontainer exec --workspace-folder "$EXAMPLE" --config "$EXAMPLE/.devcontainer/docker/devcontainer.json" \
+            ansible-navigator settings --effective --mode stdout > /tmp/settings.txt 2>&1 || true
+          grep -E "^Execution environment image name: +$EE\$" /tmp/settings.txt
+      - name: site.yml runs in the EE, inside the Dev Container
+        run: |
+          devcontainer exec --workspace-folder "$EXAMPLE" --config "$EXAMPLE/.devcontainer/docker/devcontainer.json" \
+            ansible-navigator run site.yml --mode stdout 2>&1 | tee /tmp/run.txt
+          grep -F '"msg": "ansible-core 2.21.3"' /tmp/run.txt
