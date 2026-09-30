@@ -1,0 +1,58 @@
+name: execution environment
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly, so a base image the registry no longer serves shows up
+    - cron: "17 5 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-check:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: 03-execution-environment-from-a-locked-requirements-file
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install the tools
+        run: |
+          python -m venv /tmp/tools
+          /tmp/tools/bin/pip install ansible-builder==3.1.1 ansible-navigator==26.9.0 uv==0.12.20
+      - name: The lock matches requirements.in
+        run: |
+          /tmp/tools/bin/uv pip compile requirements.in --python-version 3.14 --python-platform linux -o requirements.txt --quiet
+          git diff --exit-code -- requirements.txt
+      - name: Build the image
+        run: /tmp/tools/bin/ansible-builder build -t ee:ci --container-runtime docker
+      - name: Python packages match the lock
+        run: |
+          grep -E '^[a-z0-9]' requirements.txt | tr 'A-Z' 'a-z' | sort > /tmp/lock.txt
+          docker run --rm ee:ci python3 -m pip list --format=freeze \
+            | tr 'A-Z' 'a-z' | grep -vE '^(pip|dumb-init)==' | sort > /tmp/image.txt
+          diff /tmp/lock.txt /tmp/image.txt
+      - name: Collections match requirements.yml
+        run: |
+          docker run --rm ee:ci ansible-galaxy collection list --format json > /tmp/collections.json
+          python3 - <<'PY'
+          import json
+          want = {"community.general": "13.4.0", "community.library_inventory_filtering_v1": "1.1.5"}
+          with open("/tmp/collections.json") as f:
+              got = {n: c["version"] for path in json.load(f).values() for n, c in path.items()}
+          print(got)
+          assert got == want, f"expected {want}"
+          PY
+      - name: Run site.yml in the image
+        run: |
+          /tmp/tools/bin/ansible-navigator run site.yml --eei ee:ci --pull-policy never \
+            --ce docker --mode stdout --pae false | tee /tmp/run.txt
+          grep -F '"msg": "2.21.4 / 2"' /tmp/run.txt

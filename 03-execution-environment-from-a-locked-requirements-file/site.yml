@@ -1,0 +1,12 @@
+---
+- name: Check the execution environment
+  hosts: localhost
+  gather_facts: false
+  vars:
+    servers:
+      - name: web1
+      - name: web2
+  tasks:
+    - name: Show ansible-core's version and a json_query result
+      ansible.builtin.debug:
+        msg: "{{ ansible_version.full }} / {{ servers | community.general.json_query('length(@)') }}"

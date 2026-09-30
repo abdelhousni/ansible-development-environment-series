@@ -1,13 +1,18 @@
 ---
 version: 3
+
 images:
   base_image:
-    name: quay.io/fedora/fedora:latest
+    name: registry.fedoraproject.org/fedora:44@sha256:8938dce2600de0b78f5ef8d1541192f207fdafb7414d83957f6687147aa8998b
+
 dependencies:
+  python_interpreter:
+    package_system: python3
+    python_path: /usr/bin/python3
   ansible_core:
-    package_pip: ansible-core==2.15.9
+    package_pip: ansible-core==2.21.4
   ansible_runner:
-    package_pip: ansible-runner
-  galaxy: requirements.yml          # community.general, no version
+    package_pip: ansible-runner==2.4.3
   python: requirements.txt
+  galaxy: requirements.yml
   system: bindep.txt
