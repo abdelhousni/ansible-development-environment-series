@@ -3,3 +3,4 @@
   hosts: localhost
   roles:
     - role: myorg.webstack.run
+    - role: myorg.webstack.webserver

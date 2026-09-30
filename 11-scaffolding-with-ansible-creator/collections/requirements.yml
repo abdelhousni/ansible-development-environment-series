@@ -1,20 +1,6 @@
 ---
+# Only what the playbooks here use, pinned. network_playbook.yml needs
+# cisco.ios; it pulls in its own dependencies (ansible.netcommon, ansible.utils).
 collections:
-  - name: ansible.posix
-    version: 1.4.0
-
-  - name: ansible.scm
-    version: 3.1.0
-
-  - name: ansible.utils
-    version: 4.0.0
-
   - name: cisco.ios
-
-  - name: https://github.com/redhat-cop/network.backup
-    type: git
-
-  # TO-DO: User's own collections can also be specified as mention below.
-  # - name: my_organization.my_collection
-  #   version: 1.2.3
-  #   source: https://github.com/my_organization/my_collection.git
+    version: 11.6.0

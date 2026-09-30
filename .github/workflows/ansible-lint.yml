@@ -1,0 +1,24 @@
+name: ansible-lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ansible-lint:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        example:
+          - 11-scaffolding-with-ansible-creator
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ansible/ansible-lint@e7f397ad6dfa20d274afa17cd7bbedd84ed136f5 # v26.9.0
+        with:
+          working_directory: ${{ matrix.example }}
