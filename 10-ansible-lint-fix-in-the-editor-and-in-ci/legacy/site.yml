@@ -1,0 +1,18 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+  - name: install web server
+    yum: name=httpd state=present
+  - name: restart web server
+    shell: systemctl restart httpd
+    when: "{{ restart_web | bool }}"
+  - block:
+      - debug: msg="deployed {{inventory_hostname}}"
+    when: ansible_facts['os_family'] == "RedHat"
+    name: report
+  - name: set a password
+    ansible.builtin.user:
+      name: alice
+      password: "{{ alice_hash }}"
+    become_user: root

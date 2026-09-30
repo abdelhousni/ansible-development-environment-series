@@ -1,0 +1,26 @@
+---
+- name: Deploy the web server
+  hosts: all
+  become: true
+  tasks:
+    - name: Install web server
+      ansible.builtin.dnf:
+        name: httpd
+        state: present
+    - name: Restart web server
+      ansible.builtin.systemd:
+        name: httpd
+        state: restarted
+      when: "restart_web | bool"
+    - name: Report
+      when: ansible_facts['os_family'] == "RedHat"
+      block:
+        - name: Print the host name
+          ansible.builtin.debug:
+            msg: "deployed {{ inventory_hostname }}"
+    - name: Set a password
+      ansible.builtin.user:
+        name: alice
+        password: "{{ alice_hash }}"
+      become: true
+      become_user: root

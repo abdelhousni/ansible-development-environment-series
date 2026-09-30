@@ -1,0 +1,12 @@
+no-config lint 19 2 unchanged rc=2
+no-config fix-1 changed
+no-config lint 6 1 unchanged rc=2
+no-config fix-2 changed
+no-config lint 4 1 unchanged rc=2
+no-config fix-3 changed
+no-config lint 4 0 unchanged rc=2
+no-config fix-4 unchanged
+no-config lint 4 0 unchanged rc=2
+write-list lint 13 2 changed rc=2
+write-list lint-fix-none 13 2 changed rc=2
+write-list formatting-only 0 0 changed rc=8

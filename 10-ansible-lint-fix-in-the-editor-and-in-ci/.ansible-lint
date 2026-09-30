@@ -1,0 +1,6 @@
+---
+profile: production
+write_list:
+  - formatting
+exclude_paths:
+  - legacy/

@@ -12,6 +12,7 @@ of the series and is self-contained.
 | [`05-ansible-development-tools-adt/`](05-ansible-development-tools-adt/) | [Part 5: Ansible Development Tools (ADT)](https://til.housni.eu/ansible/ansible-development-tools-adt.html) |
 | [`07-develop-against-the-production-execution-environment/`](07-develop-against-the-production-execution-environment/) | [Part 7: Running playbooks locally in the production execution environment](https://til.housni.eu/ansible/develop-against-the-production-execution-environment.html) |
 | [`08-ansible-dev-container-with-adt/`](08-ansible-dev-container-with-adt/) | [Part 8: An Ansible Dev Container](https://til.housni.eu/ansible/ansible-dev-container-with-adt.html) |
+| [`10-ansible-lint-fix-in-the-editor-and-in-ci/`](10-ansible-lint-fix-in-the-editor-and-in-ci/) | [Part 10: `--fix` in the editor, the same ansible-lint in CI](https://til.housni.eu/ansible/ansible-lint-fix-in-the-editor-and-in-ci.html) |
 | [`11-scaffolding-with-ansible-creator/`](11-scaffolding-with-ansible-creator/) | [Part 11: Scaffolding with ansible-creator](https://til.housni.eu/ansible/scaffolding-with-ansible-creator.html) |
 
 GitHub only runs workflows from the repository root, so the examples keep
@@ -22,6 +23,7 @@ none of their own. The root workflows cover them:
 - [`adt.yml`](.github/workflows/adt.yml) checks part 5's per-Python table and installs its ADT lock;
 - [`navigator.yml`](.github/workflows/navigator.yml) runs part 7's playbooks in its execution environment;
 - [`devcontainer.yml`](.github/workflows/devcontainer.yml) starts part 8's Dev Container and runs a playbook in its EE;
+- [`lint-fix.yml`](.github/workflows/lint-fix.yml) reruns part 10's `--fix` table with the locked ansible-lint;
 - [`ansible-lint.yml`](.github/workflows/ansible-lint.yml) lints the Ansible examples with the pinned workflow from
   [part 10](https://til.housni.eu/ansible/ansible-lint-fix-in-the-editor-and-in-ci.html). Each example's own
   `.ansible-lint` sets its profile.

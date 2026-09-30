@@ -18,6 +18,7 @@ jobs:
           - 05-ansible-development-tools-adt
           - 07-develop-against-the-production-execution-environment
           - 08-ansible-dev-container-with-adt
+          - 10-ansible-lint-fix-in-the-editor-and-in-ci
           - 11-scaffolding-with-ansible-creator
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
