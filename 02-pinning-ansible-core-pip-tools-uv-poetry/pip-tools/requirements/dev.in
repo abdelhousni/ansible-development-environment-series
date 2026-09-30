@@ -1,0 +1,3 @@
+-c base.txt
+ansible-lint>=26.0
+molecule>=26.0
