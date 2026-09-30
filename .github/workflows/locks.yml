@@ -1,0 +1,92 @@
+name: locks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  EXAMPLE: 01-locking-an-ansible-dev-environment
+
+jobs:
+  pip-tools:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: The lock matches requirements.in
+        working-directory: ${{ env.EXAMPLE }}/pip-tools
+        run: |
+          python -m venv /tmp/tools
+          /tmp/tools/bin/pip install pip-tools==7.6.1
+          /tmp/tools/bin/pip-compile --quiet --generate-hashes --strip-extras requirements.in
+          git diff --exit-code -- requirements.txt
+      - name: Install the lock
+        working-directory: ${{ env.EXAMPLE }}/pip-tools
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --require-hashes -r requirements.txt
+          .venv/bin/ansible --version
+
+  uv:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: The lock matches pyproject.toml, and installs
+        working-directory: ${{ env.EXAMPLE }}/uv
+        run: |
+          python -m venv /tmp/tools
+          /tmp/tools/bin/pip install uv==0.12.20
+          /tmp/tools/bin/uv lock --check
+          /tmp/tools/bin/uv sync --locked --python 3.12
+          .venv/bin/ansible --version
+
+  poetry:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: The lock matches pyproject.toml, and installs
+        working-directory: ${{ env.EXAMPLE }}/poetry
+        env:
+          POETRY_VIRTUALENVS_IN_PROJECT: "true"
+        run: |
+          python -m venv /tmp/tools
+          /tmp/tools/bin/pip install poetry==2.5.1
+          /tmp/tools/bin/poetry check --lock
+          /tmp/tools/bin/poetry env use python3.12
+          /tmp/tools/bin/poetry sync
+          .venv/bin/ansible --version
+
+  pip-lock:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install the lock
+        working-directory: ${{ env.EXAMPLE }}/pip-lock
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install pip==26.2.1
+          .venv/bin/pip install -r pylock.toml
+          .venv/bin/ansible --version
