@@ -3,7 +3,7 @@ name = "ansible-env"
 version = "0.1.0"
 requires-python = ">=3.12,<3.15"
 dependencies = [
-    "ansible-core==2.21.0",
+    "ansible-core~=2.21.0",
     "ansible-runner>=2.3.0,<3.0.0",
 ]
 

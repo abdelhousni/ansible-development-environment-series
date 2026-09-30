@@ -4,7 +4,7 @@
 #
 #    pip-compile --no-index requirements/base.in
 #
-ansible-core==2.21.0
+ansible-core==2.21.4
     # via -r requirements/base.in
 ansible-runner==2.4.3
     # via -r requirements/base.in

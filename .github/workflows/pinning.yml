@@ -1,0 +1,106 @@
+name: pinning
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  EXAMPLE: 02-pinning-ansible-core-pip-tools-uv-poetry
+
+jobs:
+  pip-tools:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: The locks match the .in files
+        working-directory: ${{ env.EXAMPLE }}/pip-tools
+        run: |
+          python -m venv /tmp/tools
+          /tmp/tools/bin/pip install pip-tools==7.6.1
+          /tmp/tools/bin/pip-compile --quiet requirements/base.in
+          /tmp/tools/bin/pip-compile --quiet requirements/dev.in
+          git diff --exit-code -- requirements/
+      - name: Install the dev lock
+        working-directory: ${{ env.EXAMPLE }}/pip-tools
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -r requirements/dev.txt
+          .venv/bin/ansible --version | grep -F 'ansible [core 2.21.4]'
+          .venv/bin/ansible-lint --version | grep -F 'ansible-lint 26.9.0'
+
+  uv:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: The lock matches pyproject.toml, and installs
+        working-directory: ${{ env.EXAMPLE }}/uv
+        run: |
+          python -m venv /tmp/tools
+          /tmp/tools/bin/pip install uv==0.12.20
+          /tmp/tools/bin/uv lock --check
+          /tmp/tools/bin/uv sync --locked --python 3.13
+          .venv/bin/ansible --version | grep -F 'ansible [core 2.21.4]'
+          .venv/bin/ansible-lint --version | grep -F 'ansible-lint 26.9.0'
+
+  poetry:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: The locks match pyproject.toml, and install
+        working-directory: ${{ env.EXAMPLE }}
+        env:
+          POETRY_VIRTUALENVS_IN_PROJECT: "true"
+        run: |
+          python -m venv /tmp/tools
+          /tmp/tools/bin/pip install poetry==2.5.1
+          /tmp/tools/bin/poetry -C constraints/poetry-caret check --lock
+          grep -A1 '^name = "ansible-core"' constraints/poetry-caret/poetry.lock | grep -F 'version = "2.21.4"'
+          cd poetry
+          /tmp/tools/bin/poetry check --lock
+          /tmp/tools/bin/poetry env use python3.13
+          /tmp/tools/bin/poetry sync
+          .venv/bin/ansible --version | grep -F 'ansible [core 2.21.4]'
+          .venv/bin/ansible-lint --version | grep -F 'ansible-lint 26.9.0'
+
+  constraints-and-collections:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: Install uv and ansible-core
+        run: |
+          python -m venv /tmp/tools
+          /tmp/tools/bin/pip install uv==0.12.20 ansible-core==2.21.4
+      - name: Each constraint resolves as in the entry
+        working-directory: ${{ env.EXAMPLE }}/constraints
+        run: UV=/tmp/tools/bin/uv ./resolve-constraints.sh | diff expected-constraints.txt -
+      - name: The collection range stays on community.general 13
+        working-directory: ${{ env.EXAMPLE }}
+        run: |
+          /tmp/tools/bin/ansible-galaxy collection install -r collections/requirements.yml -p /tmp/collections
+          /tmp/tools/bin/ansible-galaxy collection list community.general -p /tmp/collections \
+            | tee /tmp/list.txt
+          grep -E '^community\.general +13\.' /tmp/list.txt
