@@ -1,0 +1,13 @@
+---
+- name: Show where the playbook runs
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Print the ansible-core version, paths and two environment variables
+      ansible.builtin.debug:
+        msg:
+          - "ansible-core {{ ansible_version.full }}"
+          - "playbook_dir {{ playbook_dir }}"
+          - "config {{ ansible_config_file }}"
+          - "DEMO_TOKEN={{ lookup('ansible.builtin.env', 'DEMO_TOKEN') | default('unset', true) }}"
+          - "OTHER_VAR={{ lookup('ansible.builtin.env', 'OTHER_VAR') | default('unset', true) }}"

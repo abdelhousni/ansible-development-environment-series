@@ -1,0 +1,51 @@
+name: navigator
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  production-ee:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: 07-develop-against-the-production-execution-environment
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: Install ansible-navigator
+        run: |
+          python -m venv /tmp/tools
+          /tmp/tools/bin/pip install ansible-navigator==26.9.0 ansible-core==2.21.4
+      - name: where.yml runs in the EE, with only DEMO_TOKEN passed
+        run: |
+          DEMO_TOKEN=abc123 OTHER_VAR=xyz /tmp/tools/bin/ansible-navigator run where.yml 2>&1 \
+            | tee /tmp/where.txt
+          grep -F '"ansible-core 2.21.3"' /tmp/where.txt
+          grep -F "\"playbook_dir $PWD\"" /tmp/where.txt
+          grep -F "\"config $PWD/ansible.cfg\"" /tmp/where.txt
+          grep -F '"DEMO_TOKEN=abc123"' /tmp/where.txt
+          grep -F '"OTHER_VAR=unset"' /tmp/where.txt
+      - name: The EE has no community.general
+        run: |
+          if /tmp/tools/bin/ansible-navigator run needs-general.yml > /tmp/ng.txt 2>&1; then
+            echo "expected needs-general.yml to fail"; exit 1
+          fi
+          grep -F "No filter named 'community.general.json_query'" /tmp/ng.txt
+      - name: A collection next to the playbook lacks its Python dependency
+        run: |
+          /tmp/tools/bin/ansible-galaxy collection install community.general:==13.4.0 -p ./collections
+          if /tmp/tools/bin/ansible-navigator run needs-general.yml > /tmp/ng2.txt 2>&1; then
+            echo "expected needs-general.yml to fail"; exit 1
+          fi
+          grep -F 'You need to install "jmespath" prior to running json_query filter' /tmp/ng2.txt
+          /tmp/tools/bin/ansible-navigator collections --mode stdout > /tmp/collections.txt 2>&1
+          grep -F 'known_as: community.general' /tmp/collections.txt

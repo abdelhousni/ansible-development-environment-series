@@ -1,0 +1,8 @@
+---
+- name: Use a filter from community.general, which the EE doesn't have
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Query a small structure with json_query
+      ansible.builtin.debug:
+        msg: "{{ {'a': [1, 2]} | community.general.json_query('a[1]') }}"

@@ -1,0 +1,14 @@
+---
+ansible-navigator:
+  execution-environment:
+    enabled: true
+    container-engine: auto
+    image: ghcr.io/ansible-community/community-ee-base@sha256:9f2836592ab92794e8b1982311d504ba3c28a2c09b3f8de221ca3564842c0902
+    pull:
+      policy: missing
+    environment-variables:
+      pass:
+        - DEMO_TOKEN
+  mode: stdout
+  playbook-artifact:
+    enable: false
