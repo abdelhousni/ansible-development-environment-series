@@ -1,0 +1,6 @@
+---
+# tasks file for myorg.webstack.webserver
+
+- name: Display the value of webserver_my_variable
+  ansible.builtin.debug:
+    msg: "The value of webserver_my_variable is {{ webserver_my_variable }}"

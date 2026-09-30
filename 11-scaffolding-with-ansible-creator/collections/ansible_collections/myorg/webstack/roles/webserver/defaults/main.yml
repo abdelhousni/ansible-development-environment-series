@@ -1,0 +1,6 @@
+---
+# defaults file for myorg.webstack.webserver
+
+# Variable that will be displayed in debug output
+# This demonstrates proper role variable naming with the 'run_' prefix
+webserver_my_variable: "default_value"
