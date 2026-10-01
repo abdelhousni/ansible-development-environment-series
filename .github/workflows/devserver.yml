@@ -59,5 +59,8 @@ jobs:
           docker exec devsrv chown -R alice:alice /home/alice/project
           docker cp test/check-as-developer.sh devsrv:/usr/local/bin/check-as-developer.sh
           uid=$(docker exec devsrv id -u alice)
+          docker exec devsrv sh -c "systemctl is-active systemd-logind; ls /var/lib/systemd/linger; \
+            loginctl show-user alice -p Linger -p State || true; systemctl is-active user@$uid.service || true; \
+            ls -ld /run/user/$uid || true"
           docker exec -u alice -w /home/alice -e XDG_RUNTIME_DIR="/run/user/$uid" devsrv \
             bash -lc check-as-developer.sh
