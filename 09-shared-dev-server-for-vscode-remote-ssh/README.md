@@ -43,7 +43,8 @@ entry's test. Drop it, or move the date, to upgrade.
    - `ansible-navigator run`, from [`test/project/`](test/project/), runs a playbook in that EE and gets its ansible-core, 2.21.3, without pulling her own copy;
    - her VS Code Server machine settings point the Ansible extension at `/opt/adt/bin/python`.
 
-Three steps are there only for the test, as in the entry's own test notes:
+Four steps are there only for the test, as in the entry's own test notes:
 - **The Docker connection** (`test/inventory.yml`): CI reaches the container with `community.docker.docker` instead of SSH.
-- **`dnf reinstall shadow-utils`** in the Containerfile: the base image has lost the file capabilities `newuidmap` and `newgidmap` need. A RHEL 9 VM has them.
+- **`ansible_become_method: su`** in the same inventory: the connection is already root, and `sudo`'s PAM check failed in the container.
+- **`dnf reinstall shadow-utils pam`** in the Containerfile: the base image has lost file capabilities. `newuidmap` and `newgidmap` need theirs for rootless Podman. PAM's `unix_chkpwd` needs its own to read `/etc/shadow`; without it, systemd couldn't start alice's lingering user session. A RHEL 9 VM has them.
 - **`kernel.apparmor_restrict_unprivileged_userns=0`** on the runner: Ubuntu 24.04 blocks the user namespaces rootless Podman needs, even inside a privileged container. This is a setting of GitHub's runner, not of the dev server.
