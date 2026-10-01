@@ -1,0 +1,10 @@
+---
+# CI only: reach the test container through Docker instead of SSH. The
+# connection is already root, and sudo's PAM setup in the container image
+# refuses root, so become uses su, which root may use without a password.
+devservers:
+  hosts:
+    devsrv:
+      ansible_connection: community.docker.docker
+      ansible_python_interpreter: /usr/bin/python3
+      ansible_become_method: su

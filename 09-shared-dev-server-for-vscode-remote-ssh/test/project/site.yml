@@ -1,0 +1,8 @@
+---
+- name: Show which ansible-core runs the playbook
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Print the version
+      ansible.builtin.debug:
+        msg: "ansible-core {{ ansible_version.full }}"

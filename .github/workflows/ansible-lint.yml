@@ -19,6 +19,7 @@ jobs:
           - 06-vscode-ansible-settings-per-repository
           - 07-develop-against-the-production-execution-environment
           - 08-ansible-dev-container-with-adt
+          - 09-shared-dev-server-for-vscode-remote-ssh
           - 10-ansible-lint-fix-in-the-editor-and-in-ci
           - 11-scaffolding-with-ansible-creator
     steps:
