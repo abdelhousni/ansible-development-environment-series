@@ -59,6 +59,9 @@ jobs:
           docker exec devsrv chown -R alice:alice /home/alice/project
           docker cp test/check-as-developer.sh devsrv:/usr/local/bin/check-as-developer.sh
           uid=$(docker exec devsrv id -u alice)
+          docker exec devsrv sh -c "grep -E '^Cap(Eff|Bnd)' /proc/self/status; head -c 12 /etc/shadow; echo; \
+            getent shadow alice | cut -d: -f1,3; grep -E '^(passwd|shadow):' /etc/nsswitch.conf" || true
+          docker exec devsrv systemctl show -p CapabilityBoundingSet -p NoNewPrivileges user@1000.service || true
           docker exec devsrv sh -c "systemctl is-active systemd-logind; ls /var/lib/systemd/linger; \
             loginctl show-user alice -p Linger -p State || true; systemctl is-active user@$uid.service || true; \
             ls -ld /run/user/$uid || true; journalctl -b --no-pager -u user@$uid.service -u user-runtime-dir@$uid.service | tail -40"
