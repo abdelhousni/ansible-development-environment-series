@@ -1,0 +1,17 @@
+== ade install -r requirements.yml, with UV_CONSTRAINT=constraints.txt
+  aiobotocore 3.7.0
+  ansible-core 2.21.0
+  boto3 1.43.0
+  botocore 1.43.0
+  jmespath 1.1.0
+  collection amazon.aws 11.4.0
+  ansible.cfg: -collections_path = ./collections +collections_path = .
+== ade install -e . in collection/
+  exit code 2
+  Warning: Required system packages are missing. Please use the system package manager to install them.
+  - ade-example-missing-package
+  ansible-core 2.21.0
+  jmespath 1.1.0
+  galaxy.yml build_ignore: .venv collections .tox
+  filter before the edit: "msg": "Hello, ade"
+  filter after the edit:  "msg": "Hi, ade"

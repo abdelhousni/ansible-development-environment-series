@@ -15,6 +15,7 @@ of the series and is self-contained.
 | [`08-ansible-dev-container-with-adt/`](08-ansible-dev-container-with-adt/) | [Part 8: An Ansible Dev Container](https://til.housni.eu/ansible/ansible-dev-container-with-adt.html) |
 | [`10-ansible-lint-fix-in-the-editor-and-in-ci/`](10-ansible-lint-fix-in-the-editor-and-in-ci/) | [Part 10: `--fix` in the editor, the same ansible-lint in CI](https://til.housni.eu/ansible/ansible-lint-fix-in-the-editor-and-in-ci.html) |
 | [`11-scaffolding-with-ansible-creator/`](11-scaffolding-with-ansible-creator/) | [Part 11: Scaffolding with ansible-creator](https://til.housni.eu/ansible/scaffolding-with-ansible-creator.html) |
+| [`12-collection-venv-with-ansible-dev-environment/`](12-collection-venv-with-ansible-dev-environment/) | [Part 12: A collection-aware venv with ade](https://til.housni.eu/ansible/collection-venv-with-ansible-dev-environment.html) |
 
 GitHub only runs workflows from the repository root, so the examples keep
 none of their own. The root workflows cover them:
@@ -26,6 +27,7 @@ none of their own. The root workflows cover them:
 - [`navigator.yml`](.github/workflows/navigator.yml) runs part 7's playbooks in its execution environment;
 - [`devcontainer.yml`](.github/workflows/devcontainer.yml) starts part 8's Dev Container and runs a playbook in its EE;
 - [`lint-fix.yml`](.github/workflows/lint-fix.yml) reruns part 10's `--fix` table with the locked ansible-lint;
+- [`ade.yml`](.github/workflows/ade.yml) runs part 12's ade steps and checks each result;
 - [`ansible-lint.yml`](.github/workflows/ansible-lint.yml) lints the Ansible examples with the pinned workflow from
   [part 10](https://til.housni.eu/ansible/ansible-lint-fix-in-the-editor-and-in-ci.html). Each example's own
   `.ansible-lint` sets its profile.

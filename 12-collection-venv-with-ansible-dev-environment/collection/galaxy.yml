@@ -1,0 +1,12 @@
+---
+namespace: myorg
+name: tools
+version: 1.0.0
+readme: README.md
+authors:
+  - Example <example@example.com>
+description: A minimal collection, to show ade's editable install.
+license:
+  - GPL-3.0-or-later
+dependencies:
+  ansible.utils: "==6.1.1"

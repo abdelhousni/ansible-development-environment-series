@@ -1,0 +1,2 @@
+# Deliberately not a real package: ade should warn that it's missing.
+ade-example-missing-package [platform:dpkg platform:rpm]
