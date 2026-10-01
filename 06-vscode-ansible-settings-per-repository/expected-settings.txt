@@ -1,0 +1,12 @@
+redhat.ansible 26.8.2
+ansible.validation.enabled: default true, set to true
+ansible.validation.lint.enabled: default true, set to true
+ansible.ansible.useFullyQualifiedCollectionNames: default true, set to true
+ansible.executionEnvironment.enabled: default false, set to true
+ansible.executionEnvironment.image: default "ghcr.io/ansible/community-ansible-dev-tools:latest", set to "ghcr.io/ansible-community/community-ee-base@sha256:9f2836592ab92794e8b1982311d504ba3c28a2c09b3f8de221ca3564842c0902"
+ansible.executionEnvironment.pull.policy: default "missing", set to "missing", allowed ['always', 'missing', 'never', 'tag']
+files.insertFinalNewline: VS Code core setting, set to true
+files.trimFinalNewlines: VS Code core setting, set to true
+files.trimTrailingWhitespace: VS Code core setting, set to true
+extensionDependencies: ['ms-python.python', 'ms-python.vscode-python-envs', 'redhat.vscode-yaml']
+site.yml: opens as Ansible

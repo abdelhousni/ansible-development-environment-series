@@ -10,6 +10,7 @@ of the series and is self-contained.
 | [`02-pinning-ansible-core-pip-tools-uv-poetry/`](02-pinning-ansible-core-pip-tools-uv-poetry/) | [Part 2: Pinning ansible-core with pip-tools, uv and Poetry](https://til.housni.eu/ansible/pinning-ansible-core-pip-tools-uv-poetry.html) |
 | [`03-execution-environment-from-a-locked-requirements-file/`](03-execution-environment-from-a-locked-requirements-file/) | [Part 3: Building an execution environment from a locked requirements file](https://til.housni.eu/ansible/execution-environment-from-a-locked-requirements-file.html) |
 | [`05-ansible-development-tools-adt/`](05-ansible-development-tools-adt/) | [Part 5: Ansible Development Tools (ADT)](https://til.housni.eu/ansible/ansible-development-tools-adt.html) |
+| [`06-vscode-ansible-settings-per-repository/`](06-vscode-ansible-settings-per-repository/) | [Part 6: Committing the VS Code Ansible settings with the repository](https://til.housni.eu/ansible/vscode-ansible-settings-per-repository.html) |
 | [`07-develop-against-the-production-execution-environment/`](07-develop-against-the-production-execution-environment/) | [Part 7: Running playbooks locally in the production execution environment](https://til.housni.eu/ansible/develop-against-the-production-execution-environment.html) |
 | [`08-ansible-dev-container-with-adt/`](08-ansible-dev-container-with-adt/) | [Part 8: An Ansible Dev Container](https://til.housni.eu/ansible/ansible-dev-container-with-adt.html) |
 | [`10-ansible-lint-fix-in-the-editor-and-in-ci/`](10-ansible-lint-fix-in-the-editor-and-in-ci/) | [Part 10: `--fix` in the editor, the same ansible-lint in CI](https://til.housni.eu/ansible/ansible-lint-fix-in-the-editor-and-in-ci.html) |
@@ -21,6 +22,7 @@ none of their own. The root workflows cover them:
 - [`pinning.yml`](.github/workflows/pinning.yml) checks and installs part 2's locks, and its constraint and collection examples;
 - [`ee.yml`](.github/workflows/ee.yml) builds the part 3 execution environment and checks it against its lock;
 - [`adt.yml`](.github/workflows/adt.yml) checks part 5's per-Python table and installs its ADT lock;
+- [`vscode-settings.yml`](.github/workflows/vscode-settings.yml) checks part 6's VS Code settings against the Ansible extension's manifest;
 - [`navigator.yml`](.github/workflows/navigator.yml) runs part 7's playbooks in its execution environment;
 - [`devcontainer.yml`](.github/workflows/devcontainer.yml) starts part 8's Dev Container and runs a playbook in its EE;
 - [`lint-fix.yml`](.github/workflows/lint-fix.yml) reruns part 10's `--fix` table with the locked ansible-lint;

@@ -16,6 +16,7 @@ jobs:
         example:
           - 03-execution-environment-from-a-locked-requirements-file
           - 05-ansible-development-tools-adt
+          - 06-vscode-ansible-settings-per-repository
           - 07-develop-against-the-production-execution-environment
           - 08-ansible-dev-container-with-adt
           - 10-ansible-lint-fix-in-the-editor-and-in-ci

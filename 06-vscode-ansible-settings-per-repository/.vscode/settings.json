@@ -1,0 +1,11 @@
+{
+  "ansible.validation.enabled": true,
+  "ansible.validation.lint.enabled": true,
+  "ansible.ansible.useFullyQualifiedCollectionNames": true,
+  "ansible.executionEnvironment.enabled": true,
+  "ansible.executionEnvironment.image": "ghcr.io/ansible-community/community-ee-base@sha256:9f2836592ab92794e8b1982311d504ba3c28a2c09b3f8de221ca3564842c0902",
+  "ansible.executionEnvironment.pull.policy": "missing",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true
+}
