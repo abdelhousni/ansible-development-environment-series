@@ -1,0 +1,106 @@
+---
+- name: Shared Ansible development server for VS Code Remote-SSH
+  hosts: devservers
+  become: true
+  vars:
+    dev_users: [alice, bob]
+    adt_venv: /opt/adt
+    shared_image_store: /var/lib/ee-shared
+    ee_image: ghcr.io/ansible-community/community-ee-base@sha256:9f2836592ab92794e8b1982311d504ba3c28a2c09b3f8de221ca3564842c0902
+
+  tasks:
+    - name: Install Podman, fuse-overlayfs, git, Python 3.12, and packaging for the pip module
+      ansible.builtin.dnf:
+        name: [podman, fuse-overlayfs, git, python3.12, python3-packaging]
+        state: present
+
+    - name: Copy the ADT lock file
+      ansible.builtin.copy:
+        src: adt-requirements.txt
+        dest: /opt/adt-requirements.txt
+        mode: "0644"
+
+    - name: Install the locked ADT into one venv for everyone
+      ansible.builtin.pip:
+        requirements: /opt/adt-requirements.txt
+        virtualenv: "{{ adt_venv }}"
+        virtualenv_command: python3.12 -m venv
+        extra_args: --require-hashes
+
+    - name: Put the venv on every login shell's PATH
+      ansible.builtin.copy:
+        dest: /etc/profile.d/adt.sh
+        content: |
+          case ":$PATH:" in
+            *":{{ adt_venv }}/bin:"*) ;;
+            *) PATH="{{ adt_venv }}/bin:$PATH" ;;
+          esac
+        mode: "0644"
+
+    - name: Create the shared image store
+      ansible.builtin.file:
+        path: "{{ shared_image_store }}"
+        state: directory
+        mode: "0755"
+
+    - name: Check whether the EE is already in the shared store
+      ansible.builtin.command: podman --root {{ shared_image_store }} image exists {{ ee_image }}
+      register: ee_present
+      changed_when: false
+      failed_when: ee_present.rc > 1
+
+    - name: Pull the EE into the shared store
+      ansible.builtin.command: podman --root {{ shared_image_store }} pull {{ ee_image }}
+      when: ee_present.rc == 1
+      changed_when: true
+
+    - name: Make the shared store readable by every developer
+      ansible.builtin.file:
+        path: "{{ shared_image_store }}"
+        mode: a+rX
+        recurse: true
+
+    - name: Check each developer has subordinate IDs for rootless Podman
+      ansible.builtin.command: getsubids {{ item }}
+      changed_when: false
+      loop: "{{ dev_users }}"
+
+    - name: Keep each developer's user services running between SSH sessions
+      ansible.builtin.command: loginctl enable-linger {{ item }}
+      args:
+        creates: /var/lib/systemd/linger/{{ item }}
+      loop: "{{ dev_users }}"
+
+    - name: Create each developer's Podman and VS Code Server config folders
+      ansible.builtin.file:
+        path: /home/{{ item.0 }}/{{ item.1 }}
+        state: directory
+        owner: "{{ item.0 }}"
+        group: "{{ item.0 }}"
+        mode: "0700"
+      loop: "{{ dev_users | product(['.config', '.config/containers', '.vscode-server', '.vscode-server/data', '.vscode-server/data/Machine']) }}"
+
+    - name: Give each developer's rootless Podman the shared store, read-only
+      ansible.builtin.copy:
+        dest: /home/{{ item }}/.config/containers/storage.conf
+        content: |
+          [storage]
+          driver = "overlay"
+
+          [storage.options]
+          additionalimagestores = ["{{ shared_image_store }}"]
+          mount_program = "/usr/bin/fuse-overlayfs"
+        owner: "{{ item }}"
+        group: "{{ item }}"
+        mode: "0644"
+      loop: "{{ dev_users }}"
+
+    - name: Point the Ansible extension at the shared venv
+      ansible.builtin.copy:
+        dest: /home/{{ item }}/.vscode-server/data/Machine/settings.json
+        content: '{ "ansible.python.interpreterPath": "{{ adt_venv }}/bin/python" }'
+        owner: "{{ item }}"
+        group: "{{ item }}"
+        mode: "0644"
+        force: false
+      loop: "{{ dev_users }}"

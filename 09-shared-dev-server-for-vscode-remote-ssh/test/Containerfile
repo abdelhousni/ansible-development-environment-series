@@ -1,0 +1,12 @@
+# A stand-in for a RHEL 9 VM: Rocky Linux 9, booted with systemd.
+FROM docker.io/rockylinux/rockylinux:9@sha256:8101994123cf3d0a8fee517bee7f39e555c7d92bd2d9eb3303cc988a0eeed00f
+
+# The image strips file capabilities; reinstalling shadow-utils restores the
+# ones newuidmap and newgidmap need for rootless Podman. A VM has them already.
+RUN dnf -y install systemd procps-ng sudo python3 \
+ && dnf -y reinstall shadow-utils \
+ && dnf clean all \
+ && useradd alice \
+ && useradd bob
+
+CMD ["/usr/sbin/init"]

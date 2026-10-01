@@ -1,0 +1,7 @@
+---
+# CI only: reach the test container through Docker instead of SSH.
+devservers:
+  hosts:
+    devsrv:
+      ansible_connection: community.docker.docker
+      ansible_python_interpreter: /usr/bin/python3

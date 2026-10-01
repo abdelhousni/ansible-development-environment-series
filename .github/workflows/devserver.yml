@@ -1,0 +1,63 @@
+name: devserver
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  devserver:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: 09-shared-dev-server-for-vscode-remote-ssh
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install ansible-core, uv and community.docker
+        run: |
+          python -m venv /tmp/ctl
+          /tmp/ctl/bin/pip install ansible-core==2.21.4 uv==0.12.20
+          /tmp/ctl/bin/ansible-galaxy collection install -r test/requirements.yml
+      - name: The ADT lock matches requirements.in
+        run: |
+          /tmp/ctl/bin/uv pip compile --python-version 3.12 --python-platform x86_64-manylinux_2_34 \
+            --generate-hashes --exclude-newer 2026-09-30T00:00:00Z requirements.in -o files/adt-requirements.txt --quiet
+          git diff --exit-code -- files/adt-requirements.txt
+      - name: Let containers create user namespaces (this runner only)
+        # Ubuntu 24.04 restricts unprivileged user namespaces through AppArmor,
+        # which also blocks rootless Podman inside the test container.
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Start the test server, Rocky Linux 9 with systemd
+        run: |
+          docker build -t devsrv-image test/
+          docker run -d --name devsrv --hostname devsrv --privileged --cgroupns=host \
+            -v /sys/fs/cgroup:/sys/fs/cgroup:rw devsrv-image
+          for _ in $(seq 1 30); do
+            state=$(docker exec devsrv systemctl is-system-running 2>/dev/null || true)
+            case "$state" in running|degraded) break ;; esac
+            sleep 2
+          done
+          echo "systemd: $state"
+      - name: Run the playbook
+        run: /tmp/ctl/bin/ansible-playbook -i test/inventory.yml devserver.yml
+      - name: Run it again, and nothing changes
+        run: |
+          /tmp/ctl/bin/ansible-playbook -i test/inventory.yml devserver.yml | tee /tmp/second.txt
+          grep -E 'devsrv +: ok=[0-9]+ +changed=0 +unreachable=0 +failed=0' /tmp/second.txt
+      - name: Check the server as a developer
+        run: |
+          docker cp test/project devsrv:/home/alice/project
+          docker exec devsrv chown -R alice:alice /home/alice/project
+          docker cp test/check-as-developer.sh devsrv:/usr/local/bin/check-as-developer.sh
+          uid=$(docker exec devsrv id -u alice)
+          docker exec -u alice -w /home/alice -e XDG_RUNTIME_DIR="/run/user/$uid" devsrv \
+            bash -lc check-as-developer.sh
