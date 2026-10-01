@@ -61,6 +61,6 @@ jobs:
           uid=$(docker exec devsrv id -u alice)
           docker exec devsrv sh -c "systemctl is-active systemd-logind; ls /var/lib/systemd/linger; \
             loginctl show-user alice -p Linger -p State || true; systemctl is-active user@$uid.service || true; \
-            ls -ld /run/user/$uid || true"
+            ls -ld /run/user/$uid || true; journalctl -b --no-pager -u user@$uid.service -u user-runtime-dir@$uid.service | tail -40"
           docker exec -u alice -w /home/alice -e XDG_RUNTIME_DIR="/run/user/$uid" devsrv \
             bash -lc check-as-developer.sh
