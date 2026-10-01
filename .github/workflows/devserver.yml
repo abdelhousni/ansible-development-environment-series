@@ -38,7 +38,7 @@ jobs:
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - name: Start the test server, Rocky Linux 9 with systemd
         run: |
-          docker build -t devsrv-image test/
+          docker build -t devsrv-image -f test/Containerfile test/
           docker run -d --name devsrv --hostname devsrv --privileged --cgroupns=host \
             -v /sys/fs/cgroup:/sys/fs/cgroup:rw devsrv-image
           for _ in $(seq 1 30); do
