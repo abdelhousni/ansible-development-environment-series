@@ -58,12 +58,11 @@ jobs:
           docker cp test/project devsrv:/home/alice/project
           docker exec devsrv chown -R alice:alice /home/alice/project
           docker cp test/check-as-developer.sh devsrv:/usr/local/bin/check-as-developer.sh
-          uid=$(docker exec devsrv id -u alice)
-          docker exec devsrv sh -c "grep -E '^Cap(Eff|Bnd)' /proc/self/status; head -c 12 /etc/shadow; echo; \
-            getent shadow alice | cut -d: -f1,3; grep -E '^(passwd|shadow):' /etc/nsswitch.conf" || true
-          docker exec devsrv systemctl show -p CapabilityBoundingSet -p NoNewPrivileges user@1000.service || true
-          docker exec devsrv sh -c "systemctl is-active systemd-logind; ls /var/lib/systemd/linger; \
-            loginctl show-user alice -p Linger -p State || true; systemctl is-active user@$uid.service || true; \
-            ls -ld /run/user/$uid || true; journalctl -b --no-pager -u user@$uid.service -u user-runtime-dir@$uid.service | tail -40"
-          docker exec -u alice -w /home/alice -e XDG_RUNTIME_DIR="/run/user/$uid" devsrv \
+          # The playbook enabled lingering; systemd couldn't start the user
+          # session in this container (PAM fails), so give alice a runtime
+          # directory directly. On a VM, lingering provides /run/user/<uid>.
+          docker exec devsrv test -f /var/lib/systemd/linger/alice
+          echo "lingering is enabled for alice"
+          docker exec devsrv install -d -o alice -g alice -m 0700 /tmp/runtime-alice
+          docker exec -u alice -w /home/alice -e XDG_RUNTIME_DIR=/tmp/runtime-alice devsrv \
             bash -lc check-as-developer.sh
