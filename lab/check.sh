@@ -50,8 +50,11 @@ elif ! docker info >/dev/null 2>&1; then
 else
   ok "Docker daemon $(docker version --format '{{.Server.Version}}' 2>/dev/null) (03, 07, 08, 09, 11)"
 fi
-version "Node.js (08)" "v" "install Node.js 22 with npm" node --version
-version "npm (08)" "." "install npm with Node.js" npm --version
+if command -v node >/dev/null && command -v npm >/dev/null; then
+  ok "Node.js $(node --version) and npm $(npm --version) (08)"
+else
+  ko "Node.js and npm (08)" "install Node.js 22 with npm"
+fi
 
 echo "Not checked: VS Code with the redhat.ansible extension (06, 08), optional."
 exit $missing
